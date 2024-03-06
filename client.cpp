@@ -1,73 +1,71 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string.h>
-#include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
 #include <iostream>
 #include <sstream>
 
-#include <netdb.h>
-
 int socket_dial(const char *host, const char *port);
 void usage(char *filename);
 
-int
-main(int argc, char *argv[])
-{
-  if (argc != 4) {
-    usage(argv[0]);
-    return EXIT_FAILURE;
-  }
-
-  char *host = argv[1];
-  char *port = argv[2];
-  char *path = argv[3];
-
-  // create a socket using TCP IP
-  int sockfd = socket_dial(host, port);
-  if (sockfd == -1) {
-    fprintf(stderr, "ERROR: Failed to create TCP connection.\n");
-    return EXIT_FAILURE;
-  }
-
-  // send/receive data (1 message) to/from the server
-  bool isEnd = false;
-  std::string input;
-  char buf[20] = {0};
-  std::stringstream ss;
-
-  while (!isEnd) {
-    memset(buf, '\0', sizeof(buf));
-
-    std::cout << "send: ";
-    std::cin >> input;
-    if (send(sockfd, input.c_str(), input.size(), 0) == -1) {
-      perror("send");
-      return 4;
+int main(int argc, char *argv[]) {
+    // Process command-line args
+    if (argc != 4) {
+        usage(argv[0]);
+        return EXIT_FAILURE;
     }
 
+    char *host = argv[1];
+    char *port = argv[2];
+    char *path = argv[3];
 
-    if (recv(sockfd, buf, 20, 0) == -1) {
-      perror("recv");
-      return 5;
+    // Open file
+    int filefd = open(path, O_RDONLY);
+    if (filefd == -1) {
+        fprintf(stderr, "ERROR: open: %s\n", strerror(errno));
+        return EXIT_FAILURE;
     }
-    ss << buf << std::endl;
-    std::cout << "echo: ";
-    std::cout << buf << std::endl;
 
-    if (ss.str() == "close\n")
-      break;
+    // create a socket using TCP IP
+    int sockfd = socket_dial(host, port);
+    if (sockfd == -1) {
+        fprintf(stderr, "ERROR: Failed to create TCP connection.\n");
+        return EXIT_FAILURE;
+    }
 
-    ss.str("");
-  }
+    // send file to the server
+    char buf[1024];
+    while (true) {
+        ssize_t readlen = read(filefd, buf, sizeof(buf));
+        if (readlen == -1) {
+            fprintf(stderr, "ERROR: read: %s\n", strerror(errno));
+            close(sockfd);
+            close(filefd);
+            return EXIT_FAILURE;
+        } else if (readlen == 0) {
+            break;
+        } else {
+            if (send(sockfd, buf, readlen, 0) == -1) {
+                fprintf(stderr, "ERROR: send: %s\n", strerror(errno));
+                close(sockfd);
+                close(filefd);
+                return EXIT_FAILURE;
+            }
+        }
+    }
 
-  close(sockfd);
+    close(sockfd);
+    close(filefd);
 
-  return 0;
+    return EXIT_SUCCESS;
 }
 
 // Partially from Homework 9 of Systems Programming
@@ -82,14 +80,14 @@ main(int argc, char *argv[])
 int socket_dial(const char *host, const char *port) {
     /* Lookup server address information */
     struct addrinfo hints = {
-        .ai_flags = AI_DEFAULT,     // Use default flags
-        .ai_family = AF_UNSPEC,     // Any address family (IPv4 or IPv6)
-        .ai_socktype = SOCK_STREAM, // Full-duplex byte stream
-        .ai_protocol = IPPROTO_TCP  // TCP protocol
+        .ai_flags = AI_DEFAULT,      // Use default flags
+        .ai_family = AF_UNSPEC,      // Any address family (IPv4 or IPv6)
+        .ai_socktype = SOCK_STREAM,  // Full-duplex byte stream
+        .ai_protocol = IPPROTO_TCP   // TCP protocol
     };
     struct addrinfo *results;
 
-    int status = getaddrinfo(host, port, &hints, &results); // Dynamic allocation to results
+    int status = getaddrinfo(host, port, &hints, &results);  // Dynamic allocation to results
     if (status != 0) {
         fprintf(stderr, "ERROR: getaddrinfo: %s\n", gai_strerror(status));
         return -1;
@@ -116,7 +114,7 @@ int socket_dial(const char *host, const char *port) {
 
     /* Release allocated address information */
     freeaddrinfo(results);
-    
+
     if (client_fd == -1) {
         fprintf(stderr, "ERROR: Unable to connect to %s:%s: %s\n", host, port, strerror(errno));
         return -1;
