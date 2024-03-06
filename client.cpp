@@ -82,7 +82,7 @@ int socket_dial(const char *host, const char *port) {
     struct addrinfo hints = {
         .ai_flags = AI_DEFAULT,      // Use default flags
         .ai_family = AF_UNSPEC,      // Any address family (IPv4 or IPv6)
-        .ai_socktype = SOCK_STREAM,  // Full-duplex byte stream
+        .ai_socktype = SOCK_STREAM,  // Full-duplex byte stream (TCP)
         .ai_protocol = IPPROTO_TCP   // TCP protocol
     };
     struct addrinfo *results;
@@ -94,20 +94,20 @@ int socket_dial(const char *host, const char *port) {
     }
 
     /* For each server entry, allocate socket and try to connect */
-    int client_fd = -1;
-    for (struct addrinfo *p = results; p && (client_fd == -1); p = p->ai_next) {
+    int socket_fd = -1;
+    for (struct addrinfo *p = results; p && (socket_fd == -1); p = p->ai_next) {
         /* Allocate socket */
-        client_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (client_fd == -1) {
+        socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (socket_fd == -1) {
             // fprintf(stderr, "ERROR: socket: %s\n", strerror(errno));
             continue;
         }
 
         /* Connect to host */
-        if (connect(client_fd, p->ai_addr, p->ai_addrlen) != 0) {
+        if (connect(socket_fd, p->ai_addr, p->ai_addrlen) != 0) {
             // fprintf(stderr, "ERROR: connect: %s\n", strerror(errno));
-            close(client_fd);
-            client_fd = -1;
+            close(socket_fd);
+            socket_fd = -1;
             continue;
         }
     }
@@ -115,12 +115,12 @@ int socket_dial(const char *host, const char *port) {
     /* Release allocated address information */
     freeaddrinfo(results);
 
-    if (client_fd == -1) {
+    if (socket_fd == -1) {
         fprintf(stderr, "ERROR: Unable to connect to %s:%s: %s\n", host, port, strerror(errno));
         return -1;
     }
 
-    return client_fd;
+    return socket_fd;
 }
 
 void usage(char *filename) {
