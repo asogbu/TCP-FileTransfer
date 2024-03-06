@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
         // open file to be written
         std::string path = dir + "/" + std::to_string(connections) + ".file";
-        int filefd = open(path.c_str(), (O_WRONLY | O_CREAT));
+        int filefd = open(path.c_str(), (O_WRONLY | O_CREAT), S_IRWXU);
         if (filefd == -1) {
             fprintf(stderr, "ERROR: open: %s\n", strerror(errno));
             return EXIT_FAILURE;
