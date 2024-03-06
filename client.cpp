@@ -10,22 +10,21 @@
 #include <iostream>
 #include <sstream>
 
+#include <netdb.h>
+
+int socket_dial(const char *host, const char *port);
+
 int
 main()
 {
+  const char *host = "127.0.0.1";
+  const char *port = "40000";
+
   // create a socket using TCP IP
-  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-  struct sockaddr_in serverAddr;
-  serverAddr.sin_family = AF_INET;
-  serverAddr.sin_port = htons(40000);  // open a socket on port 4000 of the server
-  serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // use localhost as the IP address of the server to set up the socket
-  memset(serverAddr.sin_zero, '\0', sizeof(serverAddr.sin_zero));
-
-  // connect to the server
-  if (connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
-    perror("connect");
-    return 2;
+  int sockfd = socket_dial(host, port);
+  if (sockfd == -1) {
+    fprintf(stderr, "ERROR: Failed to create TCP connection.\n");
+    return EXIT_FAILURE;
   }
 
   struct sockaddr_in clientAddr;
@@ -76,3 +75,60 @@ main()
 
   return 0;
 }
+
+// Partially from Homework 9 of Systems Programming
+/**
+ * Create TCP socket connection to specified host and port.
+ *
+ * @param   host        Host string to connect to.
+ * @param   port        Port string to connect to.
+ *
+ * @return  Socket file descriptor of connection if successful, otherwise -1.
+ **/
+int socket_dial(const char *host, const char *port) {
+    /* Lookup server address information */
+    struct addrinfo hints = {
+        .ai_flags = AI_DEFAULT,     // Use default flags
+        .ai_family = AF_UNSPEC,     // Any address family (IPv4 or IPv6)
+        .ai_socktype = SOCK_STREAM, // Full-duplex byte stream
+        .ai_protocol = IPPROTO_TCP  // TCP protocol
+    };
+    struct addrinfo *results;
+
+    int status = getaddrinfo(host, port, &hints, &results); // Dynamic allocation to results
+    if (status != 0) {
+        fprintf(stderr, "ERROR: getaddrinfo: %s\n", gai_strerror(status));
+        return -1;
+    }
+
+    /* For each server entry, allocate socket and try to connect */
+    int client_fd = -1;
+    for (struct addrinfo *p = results; p && (client_fd == -1); p = p->ai_next) {
+        /* Allocate socket */
+        client_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (client_fd == -1) {
+            fprintf(stderr, "ERROR: socket: %s\n", strerror(errno));
+            continue;
+        }
+
+        /* Connect to host */
+        if (connect(client_fd, p->ai_addr, p->ai_addrlen) != 0) {
+            fprintf(stderr, "ERROR: connect: %s\n", strerror(errno));
+            close(client_fd);
+            client_fd = -1;
+            continue;
+        }
+    }
+
+    /* Release allocated address information */
+    freeaddrinfo(results);
+    
+    if (client_fd == -1) {
+        fprintf(stderr, "ERROR: Unable to connect to %s:%s: %s\n", host, port, strerror(errno));
+        return -1;
+    }
+
+    return client_fd;
+}
+
+/* vim: set expandtab sts=4 sw=4 ts=8 ft=cpp: */
