@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -105,10 +106,10 @@ int socket_listen(const char *port) {
 
     /* Lookup server address information */
     struct addrinfo hints = {
-        .ai_flags = (AI_DEFAULT | AI_PASSIVE),  // Use default flags and config socket for bind
-        .ai_family = AF_UNSPEC,                 // Any address family (IPv4 or IPv6)
-        .ai_socktype = SOCK_STREAM,             // Full-duplex byte stream (TCP)
-        .ai_protocol = IPPROTO_TCP              // TCP protocol
+        .ai_flags = (AI_V4MAPPED_CFG | AI_ADDRCONFIG | AI_PASSIVE),  // Use default flags and config socket for bind
+        .ai_family = AF_UNSPEC,                                      // Any address family (IPv4 or IPv6)
+        .ai_socktype = SOCK_STREAM,                                  // Full-duplex byte stream (TCP)
+        .ai_protocol = IPPROTO_TCP                                   // TCP protocol
     };
     struct addrinfo *results;
 
