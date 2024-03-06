@@ -13,12 +13,19 @@
 #include <netdb.h>
 
 int socket_dial(const char *host, const char *port);
+void usage(char *filename);
 
 int
-main()
+main(int argc, char *argv[])
 {
-  const char *host = "127.0.0.1";
-  const char *port = "40000";
+  if (argc != 4) {
+    usage(argv[0]);
+    return EXIT_FAILURE;
+  }
+
+  char *host = argv[1];
+  char *port = argv[2];
+  char *path = argv[3];
 
   // create a socket using TCP IP
   int sockfd = socket_dial(host, port);
@@ -94,13 +101,13 @@ int socket_dial(const char *host, const char *port) {
         /* Allocate socket */
         client_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (client_fd == -1) {
-            fprintf(stderr, "ERROR: socket: %s\n", strerror(errno));
+            // fprintf(stderr, "ERROR: socket: %s\n", strerror(errno));
             continue;
         }
 
         /* Connect to host */
         if (connect(client_fd, p->ai_addr, p->ai_addrlen) != 0) {
-            fprintf(stderr, "ERROR: connect: %s\n", strerror(errno));
+            // fprintf(stderr, "ERROR: connect: %s\n", strerror(errno));
             close(client_fd);
             client_fd = -1;
             continue;
@@ -116,6 +123,16 @@ int socket_dial(const char *host, const char *port) {
     }
 
     return client_fd;
+}
+
+void usage(char *filename) {
+    if (!filename)
+        return;
+
+    fprintf(stderr, "Usage: %s <HOSTNAME-OR-IP> <PORT> <FILENAME>\n", filename);
+    fprintf(stderr, "    <HOSTNAME-OR-IP>: hostname or IP address of the server to connect.\n");
+    fprintf(stderr, "    <PORT>: port number of the server to connect.\n");
+    fprintf(stderr, "    <FILENAME>: name of the file to transfer to the server after the connection is established.\n");
 }
 
 /* vim: set expandtab sts=4 sw=4 ts=8 ft=cpp: */
