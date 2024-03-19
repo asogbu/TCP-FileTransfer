@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
         } else if (readlen == 0) {
             break;
         } else {
-            if (send(sockfd, buf, readlen, 0) == -1) {
+            if (send(sockfd, buf, readlen, MSG_NOSIGNAL) == -1) {
                 fprintf(stderr, "ERROR: send: %s\n", strerror(errno));
                 close(sockfd);
                 close(filefd);
@@ -100,6 +100,16 @@ int socket_dial(const char *host, const char *port) {
         socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (socket_fd == -1) {
             // fprintf(stderr, "ERROR: socket: %s\n", strerror(errno));
+            continue;
+        }
+
+        // set send timeout
+        struct timeval timeout = {
+            .tv_sec = 10,
+        };
+        if (setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) == -1) {
+            close(socket_fd);
+            socket_fd = -1;
             continue;
         }
 
