@@ -33,6 +33,10 @@ int main(int argc, char *argv[]) {
 
     // create a socket using TCP IP
     int sockfd = socket_listen(port);
+    if (sockfd == -1) {
+        fprintf(stderr, "ERROR: Failed to create TCP connection.\n");
+        return EXIT_FAILURE;
+    }
 
     int connections = 0;
     while (true) {
