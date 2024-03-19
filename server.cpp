@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
         while (true) {
             // Receive buf from socket
             ssize_t recvlen = recv(clientSockfd, buf, sizeof(buf), 0);
-            printf("recvlen: %zd\n", recvlen);
             if (recvlen == -1) {
+                // Error or timeout
                 if (ftruncate(filefd, 0) == -1) {
                     fprintf(stderr, "ERROR: ftruncate: %s\n", strerror(errno));
                     close(filefd);
@@ -92,9 +92,11 @@ int main(int argc, char *argv[]) {
                 }
                 fprintf(stderr, "ERROR: recv: %s\n", strerror(errno));
                 close(clientSockfd);
-                close(sockfd);
-                return EXIT_FAILURE;
+                break;
             } else if (recvlen == 0) {
+                // Client closed connection
+                close(filefd);
+                close(clientSockfd);
                 break;
             } else {
                 // Write buf to file
@@ -103,18 +105,13 @@ int main(int argc, char *argv[]) {
                     fprintf(stderr, "ERROR: write: %s\n", strerror(errno));
                     close(filefd);
                     close(clientSockfd);
-                    close(sockfd);
-                    return EXIT_FAILURE;
+                    break;
                 }
             }
         }
-
-        close(filefd);
-        close(clientSockfd);
     }
 
     close(sockfd);
-
     return EXIT_SUCCESS;
 }
 
