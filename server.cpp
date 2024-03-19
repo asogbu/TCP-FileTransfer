@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
             close(sockfd);
             return EXIT_FAILURE;
         }
+        connections++;
 
         // set recv timeout
         struct timeval timeout = {
@@ -59,8 +60,6 @@ int main(int argc, char *argv[]) {
             clientSockfd = -1;
             continue;
         }
-
-        connections++;
 
         // open file to be written
         std::string path = dir + "/" + std::to_string(connections) + ".file";
@@ -77,6 +76,9 @@ int main(int argc, char *argv[]) {
             ssize_t recvlen = recv(clientSockfd, buf, sizeof(buf), 0);
             if (recvlen == -1) {
                 // Error or timeout
+                close(clientSockfd);
+
+                // Truncate file and write "ERROR"
                 if (ftruncate(filefd, 0) == -1) {
                     fprintf(stderr, "ERROR: ftruncate: %s\n", strerror(errno));
                     close(filefd);
@@ -90,8 +92,8 @@ int main(int argc, char *argv[]) {
                         fclose(filestream);
                     }
                 }
+
                 fprintf(stderr, "ERROR: recv: %s\n", strerror(errno));
-                close(clientSockfd);
                 break;
             } else if (recvlen == 0) {
                 // Client closed connection
