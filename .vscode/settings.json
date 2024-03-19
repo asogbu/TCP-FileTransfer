@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.flex": "lex",
+        "*.bison": "lex",
+        "bitset": "cpp",
+        "string": "cpp"
+    }
+}
