@@ -44,7 +44,6 @@ int main(int argc, char *argv[]) {
         struct sockaddr clientAddr;
         socklen_t clientAddrSize = sizeof(clientAddr);
         int clientSockfd = accept(sockfd, &clientAddr, &clientAddrSize);
-
         if (clientSockfd == -1) {
             fprintf(stderr, "ERROR: accept: %s\n", strerror(errno));
             close(sockfd);
@@ -74,11 +73,26 @@ int main(int argc, char *argv[]) {
         // receive file from the client
         char buf[1024];
         while (true) {
+            // TODO: Somewhere here error if no data received for over 10 seconds.
+
             // Receive buf from socket
             ssize_t recvlen = recv(clientSockfd, buf, sizeof(buf), 0);
+            printf("recvlen: %zd\n", recvlen);
             if (recvlen == -1) {
+                if (ftruncate(filefd, 0) == -1) {
+                    fprintf(stderr, "ERROR: ftruncate: %s\n", strerror(errno));
+                    close(filefd);
+                } else {
+                    FILE *filestream = fdopen(filefd, "w");
+                    if (!filestream) {
+                        fprintf(stderr, "ERROR: fdopen: %s\n", strerror(errno));
+                        close(filefd);
+                    } else {
+                        fprintf(filestream, "ERROR");
+                        fclose(filestream);
+                    }
+                }
                 fprintf(stderr, "ERROR: recv: %s\n", strerror(errno));
-                close(filefd);
                 close(clientSockfd);
                 close(sockfd);
                 return EXIT_FAILURE;
