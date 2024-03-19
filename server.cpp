@@ -73,8 +73,6 @@ int main(int argc, char *argv[]) {
         // receive file from the client
         char buf[1024];
         while (true) {
-            // TODO: Somewhere here error if no data received for over 10 seconds.
-
             // Receive buf from socket
             ssize_t recvlen = recv(clientSockfd, buf, sizeof(buf), 0);
             printf("recvlen: %zd\n", recvlen);
