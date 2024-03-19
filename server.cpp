@@ -50,6 +50,17 @@ int main(int argc, char *argv[]) {
             close(sockfd);
             return EXIT_FAILURE;
         }
+
+        // set recv timeout
+        struct timeval timeout = {
+            .tv_sec = 10,
+        };
+        if (setsockopt(clientSockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
+            close(clientSockfd);
+            clientSockfd = -1;
+            continue;
+        }
+
         connections++;
 
         // open file to be written
@@ -63,8 +74,6 @@ int main(int argc, char *argv[]) {
         // receive file from the client
         char buf[1024];
         while (true) {
-            // TODO: Somewhere here error if no data received for over 10 seconds.
-
             // Receive buf from socket
             ssize_t recvlen = recv(clientSockfd, buf, sizeof(buf), 0);
             if (recvlen == -1) {
