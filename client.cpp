@@ -44,16 +44,22 @@ int main(int argc, char *argv[]) {
     // send file to the server
     char buf[1024];
     while (true) {
+        // read file to buffer
         ssize_t readlen = read(filefd, buf, sizeof(buf));
+
         if (readlen == -1) {
+            // Error
             fprintf(stderr, "ERROR: read: %s\n", strerror(errno));
             close(sockfd);
             close(filefd);
             return EXIT_FAILURE;
         } else if (readlen == 0) {
+            // Finished reading
             break;
         } else {
+            // Send buffer to server
             if (send(sockfd, buf, readlen, MSG_NOSIGNAL) == -1) {
+                // Error
                 fprintf(stderr, "ERROR: send: %s\n", strerror(errno));
                 close(sockfd);
                 close(filefd);
