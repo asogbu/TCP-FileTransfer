@@ -57,13 +57,15 @@ int main(int argc, char *argv[]) {
             // Finished reading
             break;
         } else {
-            // Send buffer to server
+            // Try sending buffer to server
             if (send(sockfd, buf, readlen, MSG_NOSIGNAL) == -1) {
                 // Error
                 fprintf(stderr, "ERROR: send: %s\n", strerror(errno));
                 close(sockfd);
                 close(filefd);
                 return EXIT_FAILURE;
+            } else {
+                // Send successful, go back to read
             }
         }
     }
