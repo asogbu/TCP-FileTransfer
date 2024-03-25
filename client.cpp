@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
             close(filefd);
             return EXIT_FAILURE;
         } else if (readlen == 0) {
-            // Finished reading
+            // Nothing left to read
             break;
         } else {
             // Try sending buffer to server
