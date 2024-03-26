@@ -46,8 +46,7 @@ int main(int argc, char *argv[]) {
         int clientSockfd = accept(sockfd, &clientAddr, &clientAddrSize);
         if (clientSockfd == -1) {
             fprintf(stderr, "ERROR: accept: %s\n", strerror(errno));
-            close(sockfd);
-            return EXIT_FAILURE;
+            continue;
         }
         connections++;
 
