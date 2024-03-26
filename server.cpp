@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
         socklen_t clientAddrSize = sizeof(clientAddr);
         int clientSockfd = accept(sockfd, &clientAddr, &clientAddrSize);
         if (clientSockfd == -1) {
+            // Error
             fprintf(stderr, "ERROR: accept: %s\n", strerror(errno));
             continue;
         }
@@ -65,6 +66,8 @@ int main(int argc, char *argv[]) {
         int filefd = open(path.c_str(), (O_WRONLY | O_CREAT | O_TRUNC), S_IRWXU);
         if (filefd == -1) {
             fprintf(stderr, "ERROR: open: %s\n", strerror(errno));
+            close(clientSockfd);
+            close(sockfd);
             return EXIT_FAILURE;
         }
 
@@ -75,6 +78,7 @@ int main(int argc, char *argv[]) {
             ssize_t recvlen = recv(clientSockfd, buf, sizeof(buf), 0);
             if (recvlen == -1) {
                 // Error or timeout
+                fprintf(stderr, "ERROR: recv: %s\n", strerror(errno));
                 close(clientSockfd);
 
                 // Truncate file and write "ERROR"
@@ -91,22 +95,22 @@ int main(int argc, char *argv[]) {
                         fclose(filestream);
                     }
                 }
-
-                fprintf(stderr, "ERROR: recv: %s\n", strerror(errno));
                 break;
             } else if (recvlen == 0) {
                 // Client closed connection
-                close(filefd);
                 close(clientSockfd);
+                close(filefd);
                 break;
             } else {
                 // Write buf to file
                 ssize_t writelen = write(filefd, buf, recvlen);
                 if (writelen == -1) {
                     fprintf(stderr, "ERROR: write: %s\n", strerror(errno));
-                    close(filefd);
                     close(clientSockfd);
+                    close(filefd);
                     break;
+                } else {
+                    // Write successful, go back to select
                 }
             }
         }
