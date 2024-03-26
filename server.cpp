@@ -91,6 +91,7 @@ int main(int argc, char *argv[]) {
                         fprintf(stderr, "ERROR: fdopen: %s\n", strerror(errno));
                         close(filefd);
                     } else {
+                        rewind(filestream);
                         fprintf(filestream, "ERROR");
                         fclose(filestream);
                     }
