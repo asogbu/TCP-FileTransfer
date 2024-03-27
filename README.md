@@ -6,9 +6,9 @@ A simple client-server application that transfers a file over a TCP connection. 
 
 ### Design
 
-#### Client
+#### Server
 
-The high level structure of the client is as follows:
+The high level structure of the server is as follows:
 
 - Process command-line arguments (port to listen, directory where to save files).
 - Set up TCP socket to listen at desired port.
@@ -17,9 +17,9 @@ The high level structure of the client is as follows:
 - Go back to wait for the next connection.
 - If terminating signal receive, quit.
 
-#### Server
+#### Client
 
-The high level structure of the server is as follows:
+The high level structure of the client is as follows:
 
 - Process command-line arguments (host, port, file to send).
 - Connect to server using a TCP connection.
