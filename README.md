@@ -13,9 +13,9 @@ The high level structure of the server is as follows:
 - Process command-line arguments (port to listen, directory where to save files).
 - Set up TCP socket to listen at desired port.
 - Wait for a connection.
-- Recieve a chunk of file, write it to file, and repeat until connection is closed by client (or timeout).
+- Recieve a chunk of file, write it to local directory, and repeat until connection is closed by client (or timeout).
 - Go back to wait for the next connection.
-- If terminating signal receive, quit.
+- If terminating signal received, quit.
 
 #### Client
 
@@ -23,7 +23,7 @@ The high level structure of the client is as follows:
 
 - Process command-line arguments (host, port, file to send).
 - Connect to server using a TCP connection.
-- Read a chunk of file, send it, and repeat until whole file sent.
+- Read a chunk of file, send it, and repeat until the whole file is sent.
 - Close connection.
 
 ### Problem solving
