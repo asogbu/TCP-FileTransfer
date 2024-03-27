@@ -36,9 +36,7 @@ First, I wrote my own slow client to test with the server to see if I would get 
 
 ### Resources
 
-The function `socket_dial` present in client.cpp is a modified version of code written for [Homework 9](https://www3.nd.edu/~pbui/teaching/cse.20289.sp22/homework09.html) of [Systems Programming](https://www3.nd.edu/~pbui/teaching/cse.20289.sp22/).
-
-Similarly, the function `socket_listen` present in socket.cpp is based on `socket_dial`.
+The function `socket_dial` present in client.cpp is a modified version of code written for [Homework 9](https://www3.nd.edu/~pbui/teaching/cse.20289.sp22/homework09.html) of [Systems Programming](https://www3.nd.edu/~pbui/teaching/cse.20289.sp22/). Similarly, the function `socket_listen` present in socket.cpp is based on `socket_dial`.
 
 Man pages for the involved functions were heavily referenced and occasional consulting of [Stack Overflow](https://stackoverflow.com) posts.
 
