@@ -44,5 +44,4 @@ Man pages for the involved functions were heavily referenced and occasional cons
 
 ## Author
 
-Andrés Santiago Orozco Gorjón \
-NDID: 902078552
+Andrés Santiago Orozco Gorjón
